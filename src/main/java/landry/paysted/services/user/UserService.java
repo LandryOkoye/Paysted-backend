@@ -1,5 +1,6 @@
 package landry.paysted.services.user;
 
+import jakarta.validation.constraints.NotBlank;
 import landry.paysted.dtos.CreateUserRequest;
 import landry.paysted.dtos.UserDto;
 
@@ -7,5 +8,6 @@ public interface UserService {
 
     UserDto createUser(CreateUserRequest request);
 
-    UserDto getUserByName(String name);
+    UserDto getUserByName(@NotBlank String name);
+    UserDto getUserByEmail( @NotBlank String email);
 }

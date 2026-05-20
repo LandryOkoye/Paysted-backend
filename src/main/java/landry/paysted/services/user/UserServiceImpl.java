@@ -1,7 +1,11 @@
 package landry.paysted.services.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+
+import jakarta.validation.constraints.NotBlank;
 import landry.paysted.dtos.CreateUserRequest;
 import landry.paysted.dtos.UserDto;
 import landry.paysted.model.User;
@@ -36,7 +40,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserByName(String name) {
-        return null;
+        assert name != null : "field name cannot ben empty"; // This works just during development, it does not work in production.
+        if(name == null){
+            throw new IllegalArgumentException("field name cannot ben empty");
+        }
+        return userRepository.findByName(name).orElseThrow(() -> new IllegalStateException("User not found"));
     }
+
+    @Override
+    public UserDto getUserByEmail(@NotBlank String email) {
+        if(email == null){
+            throw new IllegalStateException("field email cannot be empty");
+        }
+        return userRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("User with email does not exists"));
+    }
+
+    
 
 }
