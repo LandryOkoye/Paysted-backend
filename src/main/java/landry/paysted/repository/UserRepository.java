@@ -9,7 +9,7 @@ import landry.paysted.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    UserDto findByEmail(String email);
+    Optional<UserDto> findByEmail(String email);
     Optional<UserDto> findByName(String name);
     
-}
+};
