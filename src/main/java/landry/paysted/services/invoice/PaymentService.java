@@ -1,5 +1,5 @@
 package landry.paysted.services.invoice;
 
-public interface InvoiceService {
+public interface PaymentService {
 
 }

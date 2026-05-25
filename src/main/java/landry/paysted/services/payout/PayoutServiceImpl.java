@@ -5,7 +5,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class PayoutServiceImpl implements PayoutService{
 
-
-    // Todo: 
+    @Override
+    public void withdrawFunds() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'withdrawFunds'");
+    }
 
 }

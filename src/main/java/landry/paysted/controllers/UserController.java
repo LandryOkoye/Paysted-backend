@@ -43,7 +43,6 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ApiResponse(e.getMessage(), HttpStatus.EXPECTATION_FAILED));
         }
-
     };
 
 

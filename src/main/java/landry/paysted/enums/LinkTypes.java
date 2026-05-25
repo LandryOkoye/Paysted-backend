@@ -1,4 +1,4 @@
-package landry.paysted;
+package landry.paysted.enums;
 
 public enum LinkTypes {
 

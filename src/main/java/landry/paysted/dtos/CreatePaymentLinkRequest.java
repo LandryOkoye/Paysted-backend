@@ -1,12 +1,8 @@
 package landry.paysted.dtos;
 
-import java.util.Enumeration;
-
-import org.jspecify.annotations.NonNull;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-import landry.paysted.LinkTypes;
+import landry.paysted.enums.LinkTypes;
 
 public record CreatePaymentLinkRequest(
     @NotNull
@@ -14,7 +10,7 @@ public record CreatePaymentLinkRequest(
     @NotNull
     boolean oneTime,
     @NotNull
-    LinkTypes LinkType,
+    LinkTypes linkTypes,
     @NotNull
     String name,
     @NotNull
