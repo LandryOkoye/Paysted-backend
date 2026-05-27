@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
@@ -35,6 +37,11 @@ public class Payment {
     @NotBlank
     private Instant createdAt;
 
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public Payment(@NotBlank String paymentId, @NotBlank String paymentLink, @NotBlank String name,
             @NotBlank String title, @NotBlank String description, @NotBlank int amount, @NotBlank String currency,
             @NotBlank String cus_email, @NotBlank String cus_name, @NotBlank Instant createdAt) {
@@ -51,7 +58,7 @@ public class Payment {
     }
 
 
-    
+
     public Long getId() {
         return id;
     }
@@ -119,13 +126,13 @@ public class Payment {
         this.createdAt = createdAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     
-
-
-
-
-
-
-
 }

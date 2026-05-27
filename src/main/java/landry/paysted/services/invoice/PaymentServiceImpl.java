@@ -18,6 +18,9 @@ import landry.paysted.dtos.CreatePaymentLinkRequest;
 import landry.paysted.dtos.PaymentDto;
 import landry.paysted.exceptions.ResourceNotFoundException;
 import landry.paysted.model.Payment;
+import landry.paysted.model.User;
+import landry.paysted.repository.PaymentRepository;
+import landry.paysted.repository.UserRepository;
 import tools.jackson.databind.JsonNode;
 
 @Service
@@ -29,8 +32,11 @@ public class PaymentServiceImpl implements PaymentService{
     private ModelMapper modelMapper;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    public PaymentDto createPaymentLink(CreatePaymentLinkRequest request) throws IOException, InterruptedException{
+    @Override
+    public PaymentDto createPaymentLink(CreatePaymentLinkRequest request, Long user_id) throws IOException, InterruptedException{
         
         if(request == null || request.toString().isEmpty()){
             throw new IllegalArgumentException("Fields cannot be empty");
@@ -41,7 +47,6 @@ public class PaymentServiceImpl implements PaymentService{
             .header("Content_Type", "Application/json")
             .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
             .build();
-
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
         if(response.statusCode() != 200){
@@ -73,6 +78,10 @@ public class PaymentServiceImpl implements PaymentService{
             cus_name, 
             createdAt
         );
+
+        User user = userRepository.findById(user_id)
+            .orElseThrow(() -> new ResourceNotFoundException("User with id " + user_id + " not found"));
+        payment.setUser(user);
         paymentRepository.save(payment);
 
         PaymentDto paymentDto = modelMapper.map(payment, PaymentDto.class);
@@ -80,10 +89,32 @@ public class PaymentServiceImpl implements PaymentService{
        return paymentDto;
     }
 
-    public List<?> listAllPayment(){
+    @Override
+    public List<PaymentDto> listAllPayments(){        
+        return paymentRepository.findAll()
+            .stream()
+            .map(payment -> modelMapper.map(payment, PaymentDto.class))
+            .toList();
+    }
 
-        // TODO: implement function to retrieve and feed all paymemt links to the client.
-        return null;
+    @Override
+    public PaymentDto getPaymentById(Long id){
+        Payment payment = paymentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Payment with id " + id + " not found"));
+        return modelMapper.map(payment, PaymentDto.class);
+    }
+
+    @Override
+    public List<PaymentDto> getPaymentsByUserId(Long userId){
+        List<Payment> payments = paymentRepository.findAll()
+            .stream()
+            .filter(payment -> payment.getUser().getId().equals(userId))
+            .toList();
+        if(payments.isEmpty()){
+            throw new ResourceNotFoundException("No payments found for user with id " + userId);
+        }
+        return payments.stream()
+            .map(payment -> modelMapper.map(payment, PaymentDto.class)).toList();
     }
 
 }
