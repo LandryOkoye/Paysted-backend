@@ -7,21 +7,24 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.WebProperties.Resources.Chain.Strategy.Content;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import landry.paysted.dtos.CreatePaymentLinkRequest;
 import landry.paysted.dtos.PaymentDto;
+import landry.paysted.dtos.Require_Extra_Info;
 import landry.paysted.exceptions.ResourceNotFoundException;
 import landry.paysted.model.Payment;
 import landry.paysted.model.User;
 import landry.paysted.repository.PaymentRepository;
 import landry.paysted.repository.UserRepository;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -34,53 +37,72 @@ public class PaymentServiceImpl implements PaymentService{
     private PaymentRepository paymentRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Value("${busha.api}")
+    private String BUSHA_API;
+    @Value("${busha.api.key}")
+    private String BUSHA_API_KEY;
+
+    private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     @Override
     public PaymentDto createPaymentLink(CreatePaymentLinkRequest request, Long user_id) throws IOException, InterruptedException{
         
         if(request == null || request.toString().isEmpty()){
             throw new IllegalArgumentException("Fields cannot be empty");
-        }
+        };
+        List<Require_Extra_Info> r_ExtraInfo = List.of(new Require_Extra_Info("email", true));
 
+        CreatePaymentLinkRequest modifiedRequest = new CreatePaymentLinkRequest(
+            request.fixed(),
+            request.one_time(),
+            request.type(),
+            request.name(),
+            request.title(),
+            request.description(),
+            request.target_currency(),
+            request.target_amount(),
+            r_ExtraInfo
+        );
+        
+
+        String requestBody = objectMapper.writeValueAsString(modifiedRequest);
+    
         HttpRequest httpRequest = HttpRequest.newBuilder()
-            .uri(URI.create("Api url goes in here"))
-            .header("Content_Type", "Application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
+            .uri(URI.create("https://api.sandbox.busha.so/v1/payments/links"))
+            .header("Content-Type", "application/json")
+            .header("accept", "application/json")
+            .header("Authorization", "Bearer " + "T3MwdzlrTDFOeTo0bmhQTExNblF1TVp6OXo2c0pSVUJwU2NnZEs3S3RvUGM5dWpTUWhMbXFPaWNqWDU=")
+            .header("X-BU-PROFILE-ID", "BUS_dER0mKqfJfIvwr7cnlfNr")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build();
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() != 200){
-            System.out.println("payment link could not be created. Details: \n" + response.body());
+        if(response.statusCode() != 200 && response.statusCode() != 201){
+            logger.error("payment link could not be created. Details: \n" + response.body() + response.statusCode());
             throw new ResourceNotFoundException("Payment link could not be created");
         };
-        JsonNode responseBody = modelMapper.map(response.body(), JsonNode.class);
+        JsonNode responseBody = objectMapper.readValue(response.body(), JsonNode.class);
 
-        String paymentId = responseBody.get("data").get("id").toString();
-        String paymentLink = responseBody.get("data").get("link").toString();
-        String name = responseBody.get("data").get("name").toString();
-        String title = responseBody.get("data").get("title").toString();
-        String description = responseBody.get("data").get("description").toString();
-        int amount = responseBody.get("data").get("target_amount").asInt();
-        String currency = responseBody.get("data").get("target_currency").toString();
-        String cus_email = responseBody.get("data").get("meta").get("customer_email").toString();
-        String cus_name = responseBody.get("data").get("meta").get("customer_name").toString();
-        Instant createdAt = Instant.parse(responseBody.get("data").get("created_at").toString());
-
+        logger.info("Payment link created successfully. Details : " + responseBody);
         Payment payment= new Payment(
-            paymentId, 
-            paymentLink, 
-            name, 
-            title, 
-            description, 
-            amount, 
-            currency, 
-            cus_email, 
-            cus_name, 
-            createdAt
+            responseBody.path("data").path("id").asString(),
+            responseBody.path("data").path("link").asString(),
+            responseBody.path("data").path("name").asString(),
+            responseBody.path("data").path("title").asString(),
+            responseBody.path("data").path("description").asString(),
+            responseBody.path("data").path("target_amount").asInt(),
+            responseBody.path("data").path("target_currency").asString(),
+            responseBody.path("data").path("meta").path("customer_email").asString(),
+            responseBody.path("data").path("meta").path("customer_name").asString(),
+            Instant.parse(responseBody.path("data").path("created_at").asString())
         );
 
         User user = userRepository.findById(user_id)
             .orElseThrow(() -> new ResourceNotFoundException("User with id " + user_id + " not found"));
+        logger.info("User with id " + user_id + " found. Proceeding to save payment link");
         payment.setUser(user);
         paymentRepository.save(payment);
 
@@ -118,3 +140,4 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
 }
+ 

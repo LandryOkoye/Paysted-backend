@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Payment {
@@ -16,25 +17,25 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
+    @NotNull
     private String paymentId;
-    @NotBlank
+    @NotNull
     private String paymentLink;
-    @NotBlank
+    @NotNull
     private String name;
-    @NotBlank
+    @NotNull
     private String title;
-    @NotBlank
+    @NotNull
     private String description;
-    @NotBlank
+    @NotNull
     private int amount;
-    @NotBlank
+    @NotNull
     private String currency;
-    @NotBlank
+    @NotNull
     private String cus_email;
-    @NotBlank
+    @NotNull
     private String cus_name;
-    @NotBlank
+    @NotNull
     private Instant createdAt;
 
 
@@ -42,9 +43,9 @@ public class Payment {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Payment(@NotBlank String paymentId, @NotBlank String paymentLink, @NotBlank String name,
-            @NotBlank String title, @NotBlank String description, @NotBlank int amount, @NotBlank String currency,
-            @NotBlank String cus_email, @NotBlank String cus_name, @NotBlank Instant createdAt) {
+    public Payment(@NotNull String paymentId, @NotNull String paymentLink, @NotNull String name,
+            @NotNull String title, @NotNull String description, @NotNull int amount, @NotNull String currency,
+            @NotNull String cus_email, @NotNull String cus_name, @NotNull Instant createdAt) {
         this.paymentId = paymentId;
         this.paymentLink = paymentLink;
         this.name = name;

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import landry.paysted.dtos.ApiResponse;
@@ -15,7 +16,8 @@ import landry.paysted.dtos.CreateUserRequest;
 import landry.paysted.dtos.UserDto;
 import landry.paysted.services.user.UserService;
 
-@RestController("/user")
+@RestController()
+@RequestMapping("/users")
 public class UserController {
     @Autowired
     private UserService userService; 
@@ -33,7 +35,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("internal server error. message: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
         }
     }
-
 
     @GetMapping("/user/{username}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable String username){
