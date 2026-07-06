@@ -66,7 +66,6 @@ public class PaymentServiceImpl implements PaymentService{
             request.target_amount(),
             r_ExtraInfo
         );
-        
 
         String requestBody = objectMapper.writeValueAsString(modifiedRequest);
     
